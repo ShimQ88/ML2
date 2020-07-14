@@ -115,8 +115,14 @@ int main(int argc, char *argv[]){
             }
             numb_data=j;
         }else if(strcmp(argv[i],"-detect") == 0){
-            run_kuwahara(argc,argv);
+            int terminate_value=run_kuwahara(argc,argv);
+            cout<<"terminate_value"<<terminate_value<<endl;
+            ofstream index_save;
+            index_save.open ("index.txt");
+            index_save << to_string(terminate_value);
+            index_save.close();
             exit(1);
+            // return terminate_value;
 
         }else if(strcmp(argv[i],"-filtering") == 0){
             run_filtering(argc,argv);

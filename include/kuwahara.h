@@ -372,9 +372,16 @@ public:
 		target_ROI=Mat::zeros(cv::Size(50,50),CV_8UC3);
 
 	}
-	void main(Kuhawara *image, int total, int target_index){
+	void main(glob_t glob_result,int curr_index, int total, int target_index){
 		
 		total_numb=total;//total size storing
+
+		Mat temp_image[total_numb];
+		Kuhawara image[total_numb];
+		for(int j=0;j<total_numb;j++){
+		  	temp_image[j]=imread(glob_result.gl_pathv[curr_index+j],1);
+		  	image[j].main(temp_image[j]);
+		}
 		
 		subtracted_frame=sub_prev_and_next_images(image, target_index);
 

@@ -1672,7 +1672,8 @@ void Filter_Gray(Mat image1, Mat image2, int window_size){
 
 }
 int run_filtering(int argc,char *argv[]){
-	if(argc==3){
+	if((argc==3)||(argc==4)){
+		
 		int size=strlen(argv[2]);
 		cout<<"size:"<<size<<endl;
 		char path[size+2];
@@ -1685,8 +1686,8 @@ int run_filtering(int argc,char *argv[]){
 		glob(path,GLOB_TILDE,NULL,&glob_result);
 		
 
-			ofstream save_contour;
-			ofstream save_name;
+		ofstream save_contour;
+		ofstream save_name;
 		for(unsigned int i=0; i<glob_result.gl_pathc; i++){
 			
 			cout << glob_result.gl_pathv[i] << endl;
@@ -1820,7 +1821,13 @@ int run_filtering(int argc,char *argv[]){
 int run_kuwahara(int argc,char *argv[]){
 	/*The First image*/
 	double fps=0.0;	
-	if(argc==3){
+	if((argc==3)||(argc==4)){
+		int index_from_file;
+		if(argc==3){
+			index_from_file=0;
+		}else if(argc==4){
+			index_from_file=stoi(argv[3]);
+		}
 
 		int size=strlen(argv[2]);
 		cout<<"size:"<<size<<endl;
@@ -1851,7 +1858,10 @@ int run_kuwahara(int argc,char *argv[]){
 		int file_numb=0;
 		ofstream contour_file;
 		ofstream name_file;
-		for(unsigned int i=0; i<glob_result.gl_pathc-1; ++i){
+		// unsigned int i;
+		bool terminator=false;
+		unsigned int i;
+		for(i=index_from_file; i<glob_result.gl_pathc-1; ++i){
 			cout<<"glob_result.gl_pathc: "<<glob_result.gl_pathc<<endl;
 		// for(unsigned int i=0; i<1; ++i){
 		  	// cout << glob_result.gl_pathv[i] << endl;
@@ -1897,15 +1907,15 @@ int run_kuwahara(int argc,char *argv[]){
 		  	// total_numb=5;
 		  	/*The First image process*/
 		  	Mat samp_output[total_numb];
-		  	if(total_numb>3){
-		  		total_numb=5;
+		  	if(total_numb>4){
+		  		total_numb=4;
 		  	}
-		  	Mat image[total_numb];
-		  	Kuhawara ku[total_numb];
-		  	for(int j=0;j<total_numb;j++){
-		  		image[j]=imread(glob_result.gl_pathv[i+j],1);
-		  		ku[j].main(image[j]);
-		  	}
+		  	// Mat image[total_numb];
+		  	// Kuhawara ku[total_numb];
+		  	// for(int j=0;j<total_numb;j++){
+		  	// 	image[j]=imread(glob_result.gl_pathv[i+j],1);
+		  	// 	ku[j].main(image[j]);
+		  	// }
 		  	Kuhawara_ROI2 ku_ROI;
 		  	int loop_break=0;
 
@@ -1918,7 +1928,8 @@ int run_kuwahara(int argc,char *argv[]){
 		  		cout<<"total_numb: "<<total_numb<<endl;
 		  		
 
-			  	ku_ROI.main(ku,total_numb,loop_break);
+			  	// ku_ROI.main(ku,total_numb,loop_break);
+			  	ku_ROI.main(glob_result,i,total_numb,loop_break);
 			  	cout<<"p1"<<endl;
 			  	
 			  	// Mat *ROI_t=new Mat[total_numb-1];
@@ -1935,6 +1946,8 @@ int run_kuwahara(int argc,char *argv[]){
 				  	// 	cout<<"brighest pixel "<<j<<": "<<val<<endl;
 				  	// 	// imshow(to_string(j), ROI_real[j]);
 
+			  		// imshow("1",ku_ROI.get_temp_output_img());
+			  		// waitKey(0);
 				  	// }
 				  	// imshow("0", ku_ROI.get_merged_samp_output2());
 			  		// imshow("merged", ku_ROI.get_merged_samp_output());
@@ -1942,7 +1955,7 @@ int run_kuwahara(int argc,char *argv[]){
 			  		// imshow("get_temp_output_img", ku_ROI.get_temp_output_img());
 			  		// // imshow("4", ROI_real[loop_break]);
 			  		// key=waitKey(0);
-			  		int the_number_of_file_in_folder=50;
+			  		int the_number_of_file_in_folder=10;
 			  		if(file_numb>=the_number_of_file_in_folder){
 			  			folder_numb++;
 			  		}
@@ -1954,8 +1967,21 @@ int run_kuwahara(int argc,char *argv[]){
 				  	string saving_directory2="ROI_images/Contour/"+str_folder_numb+"/";
 
 				  	if(folder_numb==0&&file_numb==0){
-			  			creating_folder(saving_directory1);
-			  			creating_folder(saving_directory2);
+				  		bool is_folder_exsist1=false;
+				  		bool is_folder_exsist2=false;
+				  		while(is_folder_exsist1==false){
+				  			
+				  			is_folder_exsist1=creating_folder(saving_directory1);
+			  				is_folder_exsist2=creating_folder(saving_directory2);
+			  				if(is_folder_exsist1==false){
+			  					folder_numb++;
+			  					str_folder_numb=to_string(folder_numb);
+			  					saving_directory1="ROI_images/ROI/"+str_folder_numb+"/";
+				  				saving_directory2="ROI_images/Contour/"+str_folder_numb+"/";
+			  				}
+			  				
+				  		}
+			  			
 
 			  			string contour_dir="ROI_images/Contour/"+str_folder_numb+"/contour_"+str_folder_numb+".txt";
 			  			
@@ -1980,11 +2006,15 @@ int run_kuwahara(int argc,char *argv[]){
 			  		}
 
 			  		if(file_numb>=the_number_of_file_in_folder){
-			  			creating_folder(saving_directory1);
-			  			creating_folder(saving_directory2);
+			  			// creating_folder(saving_directory1);
+			  			// creating_folder(saving_directory2);
 			  			file_numb=0;
 			  			contour_file.close();
 			  			name_file.close();
+
+			  			terminator=true;
+			  			break;
+
 			  			
 			  			string contour_dir="ROI_images/Contour/"+str_folder_numb+"/contour_"+str_folder_numb+".txt";
 			  			contour_file.open(contour_dir);
@@ -2051,6 +2081,9 @@ int run_kuwahara(int argc,char *argv[]){
 			  	
 		  	}
 		  	i=i+total_numb-1;
+		  	if(terminator==true){
+		  		break;
+		  	}
 		  	
 		  	// continue;
 		  	// string saving_directory="ROI_images/";
@@ -2140,7 +2173,8 @@ int run_kuwahara(int argc,char *argv[]){
 		myfile.close();
 
 
-		exit(1);//point to exit
+		// exit(1);//point to exit
+		return i;
 
 
 	}else{//dynamic mode with camera
