@@ -293,7 +293,7 @@ int blob(Mat image2, Mat image3,Point *p1_rec, Point *p2_rec){
 	int rand_numb3 = rand() % 100;
 
 	for(int y=image2.rows/50; y<image2.rows;y++){//Ignoring the numbers from top section
-		for(int x=0; x<image3.cols;x++){
+		for(int x=0; x<image2.cols;x++){
 			if(y==0){
 				if(SET[x].empty()==true){
 

@@ -384,6 +384,8 @@ public:
 		}
 		
 		subtracted_frame=sub_prev_and_next_images(image, target_index);
+		// subtracted_frame=sub_prev_and_next_images_first_ver(image, target_index);
+
 
 		// thresholding_image(subtracted_frame, 50,true,0);
 		cv::threshold(subtracted_frame, subtracted_frame, 0, 255, CV_THRESH_BINARY | THRESH_OTSU);
@@ -539,7 +541,8 @@ public:
 		}else if(target==total_numb-1){
 			final_output = image[target-1].get_kuhawara_img() - image[target].get_kuhawara_img();
 		}else{
-			Mat* t_output=new Mat[2];
+			// Mat* t_output=new Mat[2];
+			Mat t_output[2];
 			t_output[0] = image[target-1].get_kuhawara_img() - image[target].get_kuhawara_img();
 			t_output[1] = image[target+1].get_kuhawara_img() - image[target].get_kuhawara_img();
 			final_output = t_output[0]+t_output[1];	
@@ -547,6 +550,17 @@ public:
 
 		return final_output;
 	}
+	Mat sub_prev_and_next_images_first_ver(Kuhawara *image, int target){
+		Mat final_output;
+		if(target==0){
+			final_output = image[target+1].get_kuhawara_img() - image[target].get_kuhawara_img();
+		}else{
+			final_output = image[target-1].get_kuhawara_img() - image[target].get_kuhawara_img();
+		}
+
+		return final_output;
+	}
+
 
 	// int detemine_frame_size(Mat input, int s_size, int append_size ){
 	// 	bool is_tri=false;
