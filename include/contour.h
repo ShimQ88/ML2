@@ -23,7 +23,7 @@ using namespace cv::ml;
 using namespace chrono;
 
 using namespace cv;
-#define n_CE 10
+#define n_CE 21
 
 
 #define PI 3.1415926535897932384626433832795029L
@@ -35,17 +35,13 @@ using namespace cv;
 template<typename T>
 static Ptr<T> load_classifier(const string& filename_to_load);
 
-int 
-Find_The_Object_Contour(std::vector<vector<Point>>contours,Point center_of_object);
+int Find_The_Object_Contour(std::vector<vector<Point>>contours,Point center_of_object);
 
-void 
-EllipticFourierDescriptors(std::vector<Point>& contour, std::vector<float> &CE);
+void EllipticFourierDescriptors(std::vector<Point>& contour, std::vector<float> &CE);
 
-void 
-SkinTresholding(Mat3b& frame);
+void SkinTresholding(Mat3b& frame);
 
-int 
-FindTheLargestContour(std::vector<vector<Point>>contours);
+int FindTheLargestContour(std::vector<vector<Point>>contours);
 
 void run_contour(char* argv);
 

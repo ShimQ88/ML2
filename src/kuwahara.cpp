@@ -61,6 +61,39 @@ static void Threshold_Demo( int, void* )
     threshold( src_gray, dst, threshold_value, max_binary_value, threshold_type );
     imshow( window_name, dst );
 }
+string Info_String_Merge(string class_numb, string dir_name , float x, float y, float w, float h, string CE){
+	// string CE_val=ku_ROI.get_contour_txt();
+	string text_info;
+	string final_string=class_numb;
+	final_string=final_string+',';
+	final_string=final_string+dir_name;
+	final_string=final_string+',';
+	
+
+	string yo_x=to_string(x);
+	string yo_y=to_string(y);
+	string yo_w=to_string(w);
+	string yo_h=to_string(h);
+	// cout<<"yo_x: "<<yo_x<<endl;
+	// cout<<"float_yo_x: "<<ku_ROI.get_yolo_x()<<endl;
+	// final_string=final_string+',';
+	final_string=final_string+yo_x;
+	// cout<<"final_string: "<<final_string<<endl;
+	// cout<<"yo_x: "<<yo_x<<endl;
+	final_string=final_string+',';
+	final_string=final_string+yo_y;
+	// cout<<"final_string: "<<final_string<<endl;
+	final_string=final_string+',';
+	final_string=final_string+yo_w;
+	// cout<<"final_string: "<<final_string<<endl;
+	final_string=final_string+',';
+	final_string=final_string+yo_h;
+	// cout<<"final_string: "<<final_string<<endl;
+	final_string=final_string+'&';
+	final_string=final_string+CE;
+
+	return final_string;
+}
 
 Mat Cropping_ROI(Mat imput_image,Point center_of_object, int kernel_size){
 	Point temp_p;
@@ -88,6 +121,7 @@ Mat Cropping_ROI(Mat imput_image,Point center_of_object, int kernel_size){
 
 
 	Mat ROI=imput_image(Rect(temp_p.x,temp_p.y,kernel_size,kernel_size)).clone();
+	// rectangle(imput_image,Rect(temp_p.x,temp_p.y,kernel_size,kernel_size),Scalar(0,255,0),2);
 	// Mat ROI=imput_image(Rect(abs(temp_p.x),abs(temp_p.y),abs(temp_p.y-center_of_object.y),abs(temp_p.y-center_of_object.y))).clone();
 	return ROI;
 }
@@ -190,8 +224,11 @@ Point draw_rect_box(Mat input_image, Point* p1, Point* p2, int loop_number){
 	
 	Point center_of_rect = (rec.br() + rec.tl())*0.5;
 
-    // circle(input_image,center_of_rect,3,Scalar(0,0,255));
+    // circle(input_image,center_of_rect,1,Scalar(0,0,255));
 	// rectangle(input_image,rec,Scalar(0,255,0),2);
+	cout<<"centre: "<<center_of_rect.x<<", "<<center_of_rect.y<<endl;
+	cout<<"p1: "<<p1[big_blob_i].x<<", "<<p1[big_blob_i].y<<endl;
+	cout<<"p2: "<<p2[big_blob_i].x<<", "<<p2[big_blob_i].y<<endl;
 
 	return center_of_rect;
 }
@@ -1965,19 +2002,24 @@ int run_kuwahara(int argc,char *argv[]){
 			  		string str_folder_numb=to_string(folder_numb);
 			  		string saving_directory1="ROI_images/ROI/"+str_folder_numb+"/";
 				  	string saving_directory2="ROI_images/Contour/"+str_folder_numb+"/";
+				  	string saving_directory3="ROI_images/Image/"+str_folder_numb+"/";
 
 				  	if(folder_numb==0&&file_numb==0){
 				  		bool is_folder_exsist1=false;
 				  		bool is_folder_exsist2=false;
+				  		bool is_folder_exsist3=false;
 				  		while(is_folder_exsist1==false){
 				  			
 				  			is_folder_exsist1=creating_folder(saving_directory1);
 			  				is_folder_exsist2=creating_folder(saving_directory2);
+			  				is_folder_exsist3=creating_folder(saving_directory3);
+
 			  				if(is_folder_exsist1==false){
 			  					folder_numb++;
 			  					str_folder_numb=to_string(folder_numb);
 			  					saving_directory1="ROI_images/ROI/"+str_folder_numb+"/";
 				  				saving_directory2="ROI_images/Contour/"+str_folder_numb+"/";
+				  				saving_directory3="ROI_images/Image/"+str_folder_numb+"/";
 			  				}
 			  				
 				  		}
@@ -2041,32 +2083,61 @@ int run_kuwahara(int argc,char *argv[]){
 			  		cout<<"p4"<<endl;
 				  	string file_type1="_ROI.jpg";
 				  	string file_type2="_contour.jpg";
+				  	string file_type3=".jpg";
 			  		string file_name = glob_result.gl_pathv[i+loop_break];
 			  	
 			  		write_img(ku_ROI.get_target_ROI_img() ,saving_directory1,file_name,file_type1);
+			  		
 			  		// write_img(ku_ROI.get_merged_samp_output(), saving_directory1, file_name, file_type1);
-			  		string saving_name=write_img(ku_ROI.get_ROI_and_drawing() ,saving_directory2,file_name,file_type2);
-			  		saving_name=saving_name+'\n';
+			  		write_img(ku_ROI.get_ROI_and_drawing() ,saving_directory2,file_name,file_type2);
+			  		string saving_name=write_img(ku_ROI.get_target_original_img() ,saving_directory3,file_name,file_type3);
+			  		
+			  		// saving_name=saving_name+'\n';
 
 			  		// imshow("get_target_ROI_img", ku_ROI.get_target_ROI_img());
 			  		// imshow("merged", ku_ROI.get_merged_samp_output());
 			  		// imshow("drawing", ku_ROI.get_main_ROI_img());
 			  		// imshow("get_temp_output_img", ku_ROI.get_temp_output_img());
 			  		
+			  		
 			  		// key=waitKey(0);
 			  		
 			  		file_numb++;
 			  		cout<<"p5"<<endl;
+			  		string class_val="0";
+			  		string final_string=Info_String_Merge(class_val,
+			  			saving_name,
+			  			ku_ROI.get_yolo_x(),
+			  			ku_ROI.get_yolo_y(),
+			  			ku_ROI.get_yolo_width(),
+			  			ku_ROI.get_yolo_height(),
+			  			ku_ROI.get_contour_txt()
+			  		);
 					
 			  		
-			  		string CE_val=ku_ROI.get_contour_txt(); 
-
 			  		
-			  		contour_file << CE_val;
+			  		// cout<<"class_name: "<<class_name<<endl;
+			  		// getchar();
+			  		// string* CE_test=ku_ROI.get_CEs();
+
+
+
+			  		VertexList vl;
+			  		
+			  		// CE_test[0]="1"
+			  		// cout<<"CEs"<<endl;
+			  		// for(int z=1;z<n_CE;z++){
+			  		// 	cout<<CE_test[z]<<endl;
+			  		// }
+			  		// cout<<"CEs end"<<endl;
+			  		// getchar();
+
+
+			  		contour_file << final_string;
 
 			  		name_file << saving_name;
 
-			  		myfile << CE_val;
+			  		// myfile << CE_val;
 			  		
 			  	}
 			  	
@@ -2076,9 +2147,7 @@ int run_kuwahara(int argc,char *argv[]){
 			  	if(loop_break==total_numb){
 			  		cout<<"loop break"<<endl;
 			  		break;
-			  	}
-
-			  	
+		  		}	
 		  	}
 		  	i=i+total_numb-1;
 		  	if(terminator==true){
@@ -2171,7 +2240,6 @@ int run_kuwahara(int argc,char *argv[]){
 			// delete p2;
 		}
 		myfile.close();
-
 
 		// exit(1);//point to exit
 		return i;

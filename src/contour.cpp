@@ -40,6 +40,7 @@ void EllipticFourierDescriptors(std::vector<Point>& contour, std::vector<float> 
 	for(int count=0; count<n&&count<CE.size(); count++){
 		// printf("%d CE %f ax %f ay %f bx %f by %f\n",count,CE[count],ax[count],ay[count],bx[count],by[count]);
 	}
+	// getchar();
 }
 void SkinTresholding(Mat3b& frame){
 	for(int i=0; i<frame.rows; ++i){

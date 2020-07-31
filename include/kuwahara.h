@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 
+
 // System Headers
 #include "opencv2/opencv.hpp"
 #include <stdio.h>
@@ -343,9 +344,18 @@ private:
 	Mat merged_samp_output;
 	Mat merged_samp_output2;
 	Mat target_ROI;
+	float target_width;
+	float target_height;
+	Mat target_ori_img;
+	float yolo_width;
+	float yolo_height;
+	float yolo_x;
+	float yolo_y;
+
 	Mat ROI_and_drawing;
 	string contour_txt;
 	
+	string p_CE[n_CE];
 
 	Mat ROI_thresholded;
 	Mat blob_window;
@@ -381,8 +391,8 @@ public:
 		for(int j=0;j<total_numb;j++){
 		  	temp_image[j]=imread(glob_result.gl_pathv[curr_index+j],1);
 		  	image[j].main(temp_image[j]);
+
 		}
-		
 		subtracted_frame=sub_prev_and_next_images(image, target_index);
 		// subtracted_frame=sub_prev_and_next_images_first_ver(image, target_index);
 
@@ -412,6 +422,10 @@ public:
 		// cout<<"This is point 2-2"<<endl;
 		cout<<"pp1"<<endl;
 		p_center_of_object=draw_rect_box(image[target_index].get_original_img(), p_start_roi_window, p_end_roi_window, 200);
+		
+		// circle(image[target_index].get_original_img(),p_center_of_object,1,Scalar(255,0,0));
+
+		
 		cout<<"pp2"<<endl;
 
 		
@@ -433,11 +447,33 @@ public:
 		Kuhawara temp_ku[total_numb];
 		samp_output = new Mat[total_numb-1];
 		ROI=new Mat[total_numb];
-
+		cropping_size=cropping_size-40;
 		for(int i=0;i<total_numb;i++){
 			ROI[i]=Cropping_ROI(image[i].get_original_img(),p_center_of_object,cropping_size);
+			
+			if(i==target_index){//THis is for yolo data
+				target_ori_img=image[i].get_original_img();
+
+				
+				target_height=ROI[i].cols;
+				target_width=ROI[i].rows;
+				// cout<<"target_ori_img.rows: "<<target_ori_img.rows<<endl;
+				// cout<<"target_ori_img.cols: "<<target_ori_img.cols<<endl;
+				yolo_height=target_height/(float)target_ori_img.rows;
+				yolo_width=target_width/(float)target_ori_img.cols;
+				yolo_x=p_center_of_object.x/(float)target_ori_img.cols;
+				yolo_y=p_center_of_object.y/(float)target_ori_img.rows;
+				// getchar();
+				
+
+			}
+
 			temp_ku[i].main(ROI[i]);
 		}
+
+		// imshow("target_index", image[target_index].get_original_img());
+		// cout<<"3"<<endl;
+		// int key=waitKey(0);
 		// cout<<"THis is point 4"<<endl;
 		int temp_i=0;
 		target_ROI=ROI[target_index];
@@ -502,13 +538,14 @@ public:
 			cout<<"object_i: "<<object_i<<endl;
 			
 			EllipticFourierDescriptors(contours[object_i],CE);
-			contour_txt="0, ";
+			contour_txt="";
 			// strcat(contour_txt, "0, ");
 			// to_string(CE[i])
-			for(int i=1;i<10;i++){
+			for(int i=1;i<n_CE;i++){
 				contour_txt=contour_txt+to_string(CE[i]);
+				p_CE[i]=to_string(CE[i]);
 				// strcat(contour_txt ,st );
-				if(i==9){
+				if(i==n_CE-1){
 					contour_txt=contour_txt+"\n";
 					cout<<"enter"<<endl;
 
@@ -618,6 +655,13 @@ public:
 	Mat get_merged_samp_output(){return merged_samp_output;}
 	Mat get_merged_samp_output2(){return merged_samp_output2;}
 	Mat* get_samp_output(){return samp_output;}
+	
+	float get_yolo_x(){return yolo_x;}
+	float get_yolo_y(){return yolo_y;}
+	float get_yolo_height(){return yolo_height;}
+	float get_yolo_width(){return yolo_width;}
+	Mat get_target_original_img(){return target_ori_img;}
+
 	int get_pixel(int target){
 		Mat *temp_ROI=get_samp_output();
 		Mat target_ROI=temp_ROI[target];
@@ -631,7 +675,35 @@ public:
 		}
 		return to;
 	}
+	string* get_CEs(){return p_CE;}
 	
 };
+
+struct CEs{
+	CEs(string* CE_val):CEs_(CE_val){} 
+	string* CEs_;
+};
+
+struct Yolo_info{
+	Yolo_info(double x, double y, double w, double h ):
+		x_(x),y_(y),w_(w),h_(h)
+	{} 
+	double x_;
+	double y_;
+	double w_;
+	double h_;
+};
+
+struct Vertex
+{
+    Vertex( const CEs& val_CEs, const Yolo_info& val_Yolo ):
+        CEs_val_( val_CEs ), yolo_info_( val_Yolo )
+    {}
+    CEs CEs_val_;
+    Yolo_info yolo_info_;
+};
+
+typedef std::vector< Vertex > VertexList;
+
 
 #endif

@@ -1,6 +1,6 @@
 // Project Headers
 // #include "load_and_save_ml.h"
-#include "gnuplot.h"
+// #include "gnuplot.h"
 
 // #include "class.h"
 
@@ -26,25 +26,9 @@ extern bool load_and_save_ml( const string& data_filename,
                       const string& filename_to_load,
                       float percent_of_division,
                       int ml_technique);
+extern void run_gnuplot();
 
-void run_gnuplot(){
-    Gnuplot gp;
-    ifstream f_plot;
-    // f_plot.open ("plot/command.txt");
-    f_plot.open ("plot/temp_com5.txt");
-    string line;
-    if(f_plot.is_open())
-    {
-        while (getline(f_plot,line))
-        {
-          cout << line << '\n';
-          // cout<<line<<endl;
-          gp(line);
-          // getchar();
-        }
-        f_plot.close();
-    }
-}
+
 
 void info(){
     cout<<"hello this is the program for machine learning"<<endl;
@@ -75,8 +59,7 @@ int main(int argc, char *argv[]){
     info();
     // getchar();
     int numb_data=0;
-    for(int i = 1; i<argc; i++)
-    {
+    for(int i = 1; i<argc; i++){
         if(strcmp(argv[i],"-data2")==0){ // flag "-data letter_recognition.xml"
         	i++; 
             data_filename = argv[i];

@@ -4,6 +4,7 @@
 // System Headers
 #include <iostream>
 #include <string>
+#include <fstream>
 using namespace std;
 
 class Gnuplot{

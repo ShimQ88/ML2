@@ -1,6 +1,6 @@
 # Makefile settings
 headers = -I/usr/lib/include/ -I./include/
-libs = `pkg-config --cflags --libs opencv`
+libs = `pkg-config --cflags --libs opencv` 
 build = ./obj/
 src = ./src/
 detection=./src/detection/
