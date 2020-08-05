@@ -1,4 +1,4 @@
-path_of_file=~/Desktop/dataset/sample1
+path_of_file=~/Desktop/dataset/sample2
 path_of_file2=~/Desktop/ML2/sample_img
 
 echo $path_of_file

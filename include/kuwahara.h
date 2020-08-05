@@ -530,9 +530,9 @@ public:
 			// // cout<<"1"<<endl;
 			drawing=Mat::zeros(merged_samp_output.size(),CV_8UC3);
 			Scalar color=CV_RGB(255,0,0);
-			drawContours(drawing,contours,object_i,color,2,8);
-			drawContours(ROI_and_drawing,contours,object_i,color,2,8);
-			drawContours(merged_samp_output,contours,object_i,color,2,8);
+			drawContours(drawing,contours,object_i,color,1,8);
+			drawContours(ROI_and_drawing,contours,object_i,color,1,8);
+			drawContours(merged_samp_output,contours,object_i,color,1,8);
 
 			vector<float>CE;
 			cout<<"object_i: "<<object_i<<endl;
