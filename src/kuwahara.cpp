@@ -49,7 +49,42 @@ const char* window_name = "Threshold Demo";
 const char* trackbar_type = "Type: \n 0: Binary \n 1: Binary Inverted \n 2: Truncate \n 3: To Zero \n 4: To Zero Inverted";
 const char* trackbar_value = "Value";
 
+void function10(ifstream file_contour, string* yolo_data, string* contour_data){
+		
+	string contour_line;
+	getline(file_contour, contour_line);
+	cout<<"contour_line: "<<contour_line<<endl;
 
+	int d=0;
+	string n1=contour_line;
+	int delimiter = contour_line.find(';');
+	string class_name = contour_line.substr(0,delimiter);//extract out class
+	
+	yolo_data=class_name;
+	contour_data=class_name;
+	
+	yolo_data=yolo_data+',';
+	contour_data=contour_data+',';
+
+	contour_line=contour_line.substr(delimiter+1);
+
+	delimiter = contour_line.find(';');
+	
+	string image_file_name=contour_line.substr(0,delimiter);
+
+	contour_line=contour_line.substr(delimiter+1);
+
+	delimiter = contour_line.find(';');
+	
+	yolo_data=yolo_data+image_file_name;
+
+	string yo_info=contour_line.substr(0,delimiter);//extract out yolo information
+	contour_line=contour_line.substr(delimiter+1);
+	string contour_info=contour_line;
+	
+	yolo_data=yolo_data+yo_info;
+	contour_data=contour_data+contour_info;
+}
 
 
 static void Threshold_Demo( int, void* )
@@ -1809,42 +1844,52 @@ int run_filtering(int argc,char *argv[]){
 					
 				}
 
-				
-				
+				string yolo_data, contour_data;
+				function10(file_contour, &yolo_data, &contour_data);
 
 				
-				string contour_line;
-				string name_line;
-				getline(file_contour, contour_line);
-				getline(file_name, name_line);
-				cout<<"contour_line: "<<contour_line<<endl;
-				cout<<"name_line: "<<name_line<<endl;
+				// string contour_line;
+				// string name_line;
+				// getline(file_contour, contour_line);
+				// getline(file_name, name_line);
+				// cout<<"contour_line: "<<contour_line<<endl;
+				// cout<<"name_line: "<<name_line<<endl;
 
-				int d=0;
-				string n1=contour_line;
-				int delimiter = contour_line.find(';');
-				string class_name = contour_line.substr(0,delimiter);//extract out class
-				string yolo_data=class_name;
-				yolo_data=yolo_data+',';
-				string contour_data=class_name;
-				contour_data=contour_data+',';
+				// int d=0;
+				// string n1=contour_line;
+				// int delimiter = contour_line.find(';');
+				// string class_name = contour_line.substr(0,delimiter);//extract out class
+				
+				// string yolo_data=class_name;
+				// yolo_data=yolo_data+',';
+				// string contour_data=class_name;
+				// contour_data=contour_data+',';
 
-				contour_line=contour_line.substr(delimiter+1);
+				// contour_line=contour_line.substr(delimiter+1);
 
-				delimiter = contour_line.find(';');
-				string yo_info=contour_line.substr(0,delimiter);//extract out yolo information
-				contour_line=contour_line.substr(delimiter+1);
-				string contour_info=contour_line;
+				// delimiter = contour_line.find(';');
+				
+				// string image_file_name=contour_line.substr(0,delimiter);
+
+				// contour_line=contour_line.substr(delimiter+1);
+
+				// delimiter = contour_line.find(';');
+
+				// yolo_data=yolo_data+image_file_name;
+
+				// string yo_info=contour_line.substr(0,delimiter);//extract out yolo information
+				// contour_line=contour_line.substr(delimiter+1);
+				// string contour_info=contour_line;
 
 
 
-				yolo_data=yolo_data+yo_info;
-				contour_data=contour_data+contour_info;
+				// yolo_data=yolo_data+yo_info;
+				// contour_data=contour_data+contour_info;
 
 
-				cout<<"class:"<<class_name<<endl;
-				cout<<"yo_info:"<<yo_info<<endl;
-				cout<<"contour_info:"<<contour_info<<endl;
+				// cout<<"class:"<<class_name<<endl;
+				// cout<<"yo_info:"<<yo_info<<endl;
+				// cout<<"contour_info:"<<contour_info<<endl;
 				
 
 				// string n1 = name.substr(delimiter+1);
@@ -1958,11 +2003,11 @@ int run_filtering(int argc,char *argv[]){
 					cout<<"you press backspace"<<endl;
 					j=j-1;
 
-					if(){
+					// if(){
 
-					}else{
+					// }else{
 
-					}
+					// }
 
 					// status=remove(fname);
 					// if(status==0)
