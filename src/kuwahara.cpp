@@ -49,41 +49,62 @@ const char* window_name = "Threshold Demo";
 const char* trackbar_type = "Type: \n 0: Binary \n 1: Binary Inverted \n 2: Truncate \n 3: To Zero \n 4: To Zero Inverted";
 const char* trackbar_value = "Value";
 
-void function10(ifstream file_contour, string* yolo_data, string* contour_data){
+// void test(string *da){
+// 	*da="hello";
+// }
+
+void Splite_Data_Yolo_and_Contour(ifstream &file_contour, string* yolo_data, string* contour_data, string* img_name ){
 		
 	string contour_line;
 	getline(file_contour, contour_line);
 	cout<<"contour_line: "<<contour_line<<endl;
 
-	int d=0;
-	string n1=contour_line;
+	
 	int delimiter = contour_line.find(';');
 	string class_name = contour_line.substr(0,delimiter);//extract out class
 	
-	yolo_data=class_name;
-	contour_data=class_name;
+	*yolo_data=class_name;
+	*contour_data=class_name;
 	
-	yolo_data=yolo_data+',';
-	contour_data=contour_data+',';
+	*yolo_data=*yolo_data+',';
+	*contour_data=*contour_data+',';
 
 	contour_line=contour_line.substr(delimiter+1);
 
 	delimiter = contour_line.find(';');
 	
-	string image_file_name=contour_line.substr(0,delimiter);
+	*img_name=contour_line.substr(0,delimiter);
 
 	contour_line=contour_line.substr(delimiter+1);
 
 	delimiter = contour_line.find(';');
 	
-	yolo_data=yolo_data+image_file_name;
+	*yolo_data=*yolo_data+*img_name;
+
+	*yolo_data=*yolo_data+',';
 
 	string yo_info=contour_line.substr(0,delimiter);//extract out yolo information
 	contour_line=contour_line.substr(delimiter+1);
 	string contour_info=contour_line;
 	
-	yolo_data=yolo_data+yo_info;
-	contour_data=contour_data+contour_info;
+	*yolo_data=*yolo_data+yo_info;
+	*contour_data=*contour_data+contour_info;
+}
+
+string Ori_Img_Name_To_Contour_Name(string img_name){
+	int delimiter = img_name.find('.');
+	string output_string;
+	output_string = img_name.substr(0,delimiter);
+	output_string = output_string+"_contour.jpg";
+ 	return output_string;
+}
+
+string Jpg_To_Txt_Directory(string img_name){
+	int delimiter = img_name.find('.');
+	string output_string="ROI_success/yolo/";
+	img_name = img_name.substr(0,delimiter);
+	output_string = output_string+img_name+".txt";
+ 	return output_string;
 }
 
 
@@ -1747,7 +1768,12 @@ void Filter_Gray(Mat image1, Mat image2, int window_size){
 }
 int run_filtering(int argc,char *argv[]){
 	if((argc==3)||(argc==4)){
-		
+		int index_from_file;
+		if(argc==3){
+			index_from_file=0;
+		}else if(argc==4){
+			index_from_file=stoi(argv[3]);
+		}
 		int size=strlen(argv[2]);
 		cout<<"size:"<<size<<endl;
 		// char path[size+10];
@@ -1778,7 +1804,8 @@ int run_filtering(int argc,char *argv[]){
 
 		ofstream save_contour;
 		// ofstream save_yolo;
-		for(unsigned int i=0; i<glob_result.gl_pathc; i++){
+		unsigned int i=index_from_file;
+		// for(unsigned int i=index_from_file; i<glob_result.gl_pathc; i++){
 			
 			cout << glob_result.gl_pathv[i] << endl;
 			cout << glob_result_ori_img.gl_pathv[i] << endl;
@@ -1804,190 +1831,93 @@ int run_filtering(int argc,char *argv[]){
 			// cout<<"sub_path_ori_img: "<<sub_path_ori_img<<endl;
 			glob(sub_path_ori_img,GLOB_TILDE,NULL,&glob_sub_result_ori_img);
 			cout<<"glob_sub_result.gl_pathc:"<<glob_sub_result.gl_pathc<<endl;
-			Mat image_contour[glob_sub_result.gl_pathc-2];//except to contour and name files
+			// Mat image_contour[glob_sub_result.gl_pathc-2];//except to contour and name files
+			Mat image_contour;
 
-			Mat image_ori_img[glob_sub_result.gl_pathc-2];//except to contour and name files
-			
+			// Mat image_ori_img[glob_sub_result.gl_pathc-2];//except to contour and name files
+			Mat image_ori_img;//except to contour and name files
+
 			string p_contour;
 			string path_name;
 			ifstream file_contour;
-			ifstream file_name;
+			
 			cout<<"haha"<<endl;
 
 			// cout<<"glob_result.gl_pathv[i]: "<<glob_result.gl_pathv[i]<<endl;
 			// cout<<"glob_sub_result+1: "<<glob_result.gl_pathv[i+1]<<endl;
 			// cout<<"hoho"<<endl;
+			bool is_press_wrong_or_back_btn=false;
+			int lockopener=0;
+			string prev_file_name_ori_img;
+			string prev_file_name_contour;
+			string prev_txt_name;
+			Mat prev_file_img_contour;
+			Mat prev_file_img_ori;
+			string yolo_data, contour_data, name_ori_img;
+			int counter=0;
 			for(unsigned int j=0; j<glob_sub_result.gl_pathc-2; j++){
-
-				if(j==0){
+				if(j==0&&is_press_wrong_or_back_btn==false){
 					cout<<"glob_sub_result: "<<glob_sub_result.gl_pathv[j]<<endl;
 					cout<<"glob_sub_result+1: "<<glob_sub_result.gl_pathv[j+1]<<endl;
 					find_contour_and_name_file(glob_sub_result, &p_contour, &path_name);
 					cout<<"p_contour: "<<p_contour<<endl;
 					file_contour.open(p_contour);
-					file_name.open(path_name);
+					
 					if(file_contour.is_open()==true){
 						cout<<"success to load contour file"<<endl;
 					}else{
 						cout<<"fail to load contour file"<<endl;
 					}
-
-					if(file_name.is_open()==true){
-						cout<<"success to load name file"<<endl;
-					}else{
-						cout<<"fail to load name file"<<endl;
-					}
 				}
 
-				if(j==0&&i==0){
-					save_contour.open("ROI_success/contour/final_contour.txt");
-					
+				if(j==0&&is_press_wrong_or_back_btn==false){
+					save_contour.open("ROI_success/contour/final_contour.txt",std::ios_base::app);
 				}
 
-				string yolo_data, contour_data;
-				function10(file_contour, &yolo_data, &contour_data);
-
 				
-				// string contour_line;
-				// string name_line;
-				// getline(file_contour, contour_line);
-				// getline(file_name, name_line);
-				// cout<<"contour_line: "<<contour_line<<endl;
-				// cout<<"name_line: "<<name_line<<endl;
-
-				// int d=0;
-				// string n1=contour_line;
-				// int delimiter = contour_line.find(';');
-				// string class_name = contour_line.substr(0,delimiter);//extract out class
+				if(is_press_wrong_or_back_btn==false){
+					Splite_Data_Yolo_and_Contour(file_contour, &yolo_data, &contour_data,&name_ori_img);			
+				}
 				
-				// string yolo_data=class_name;
-				// yolo_data=yolo_data+',';
-				// string contour_data=class_name;
-				// contour_data=contour_data+',';
-
-				// contour_line=contour_line.substr(delimiter+1);
-
-				// delimiter = contour_line.find(';');
-				
-				// string image_file_name=contour_line.substr(0,delimiter);
-
-				// contour_line=contour_line.substr(delimiter+1);
-
-				// delimiter = contour_line.find(';');
-
-				// yolo_data=yolo_data+image_file_name;
-
-				// string yo_info=contour_line.substr(0,delimiter);//extract out yolo information
-				// contour_line=contour_line.substr(delimiter+1);
-				// string contour_info=contour_line;
-
-
-
-				// yolo_data=yolo_data+yo_info;
-				// contour_data=contour_data+contour_info;
-
-
-				// cout<<"class:"<<class_name<<endl;
-				// cout<<"yo_info:"<<yo_info<<endl;
-				// cout<<"contour_info:"<<contour_info<<endl;
-				
-
-				// string n1 = name.substr(delimiter+1);
-
-				cout<<"n1: "<<n1<<endl;
-				// cout << glob_sub_result.gl_pathv[j] << endl;
-				string name=glob_sub_result.gl_pathv[j];
-				delimiter=0;
-				while(delimiter!=-1){
-			  		delimiter = name.find('/');
-			  		name = name.substr(delimiter+1);
-			  	}
-
-
-			  	// if(name.compare(name_line)==0){
-			  	// 	cout<<"match with file"<<endl;
-			  	// }else{
-			  	// 	cout<<"not match with file"<<endl;
-			  	// 	cout<<"terminate program"<<endl;
-			  	// 	exit(1);
-			  	// }
-				// if(file_contour.is_open()){
-				//     while ( getline (file_contour,line) ){
-				//       cout << line << '\n';
-				//     }
-				//     file_contour.close();
-				// }
-				// for(unsigned int z=0; z<glob_sub_result.gl_pathc; z++){
-				// 	int delimiter=0;
-				// 	string file_name=glob_sub_result.gl_pathv[z];
-				// 	while(delimiter!=-1){
-				//   		delimiter = file_name.find('/');
-				//   		file_name = file_name.substr(delimiter+1);
-				//   	}
-				// 	// string contour[2];
-
-				// 	delimiter = file_name.find('.');
-				// 	string type= file_name.substr(delimiter+1);
-				// 	if(type.compare("txt")==0){
-				// 		delimiter = file_name.find('_');
-				// 		string test=file_name.substr(0,delimiter);
-				// 		if(test.compare("contour")==0){
-				// 			path_contour=glob_sub_result.gl_pathv[z];
-						
-				// 		}else if(test.compare("name")==0){
-				// 			path_name=glob_sub_result.gl_pathv[z];
-				// 		}
-						
-				// 	}
-					
-				// }
-
-
+				string name_contour=Ori_Img_Name_To_Contour_Name(name_ori_img);
 				// cout<<"path_contour: "<<path_contour<<endl;
 				// cout<<"path_name: "<<path_name<<endl;
 
 				// cout << glob_sub_result.gl_pathv[j] << endl;
-				image_contour[j]=imread(glob_sub_result.gl_pathv[j],1);
-				image_ori_img[j]=imread(glob_sub_result_ori_img.gl_pathv[j],1);
+
+				image_contour=imread(glob_sub_result.gl_pathv[j],1);
+				image_ori_img=imread(glob_sub_result_ori_img.gl_pathv[j],1);
 
 
 
 				// glob_sub_result.gl_pathv[j]
-
-				imshow("image_contour", image_contour[j]);
-				imshow("image_ori", image_ori_img[j]);
+				// if(is_press_wrong_or_back_btn==true){
+					// imshow("image_contour", prev_file_img_contour);
+					// imshow("image_ori", prev_file_img_ori);
+				// }else{
+				imshow("image_contour", image_contour);
+				imshow("image_ori", image_ori_img);	
+				// }
+				
 				int key=waitKey(0);
 				// cout<<"the key: "<<key<<endl;
 				// getchar();  
-					
+				string path1="ROI_success/contour/"+name_contour;
+				string path2="ROI_success/yolo/"+name_ori_img;
+
+				string y_path=Jpg_To_Txt_Directory(name_ori_img);
+				lockopener++;
+				if(lockopener>=2){
+					is_press_wrong_or_back_btn=false;	
+				}
 				if(key==10){//when press enter
 					ofstream save_yolo;//yolo
-					
-					string path1="ROI_success/contour/"+name;
-					
-					string name2=glob_sub_result_ori_img.gl_pathv[j];
-
-					delimiter=0;
-					while(delimiter!=-1){
-				  		delimiter = name2.find('/');
-				  		name2 = name2.substr(delimiter+1);
-				  	}
-
-					string path2="ROI_success/yolo/"+name2;
-
-					cout<<"path1:"<<path1<<endl;
-					cout<<"path2:"<<path2<<endl;
-
-					string y_path="ROI_success/yolo/";
-				  	delimiter = name2.find('.');
-				  	name2 = name2.substr(0,delimiter);
-				  	y_path=y_path+name2;
-				  	y_path=y_path+".txt";
 				  	
 				  	save_yolo.open(y_path);
 
-					imwrite( path1, image_contour[j]);
-					imwrite( path2, image_ori_img[j]);
+				  	//writing process
+					imwrite( path1, image_contour);
+					imwrite( path2, image_ori_img);
 
 					save_contour << contour_data;
 					save_contour << endl;
@@ -2001,76 +1931,76 @@ int run_filtering(int argc,char *argv[]){
 					
 				}else if(key==8){//when press backspace
 					cout<<"you press backspace"<<endl;
-					j=j-1;
+					if(j==0){
 
-					// if(){
+					}else{
+						is_press_wrong_or_back_btn=true;
+						lockopener=0;
+						char contour_delete_file[prev_file_name_contour.size()+1];
+						strcpy(contour_delete_file,prev_file_name_contour.c_str());
 
-					// }else{
+						char yolo_delete_file[prev_file_name_ori_img.size()+1];
+						strcpy(yolo_delete_file,prev_file_name_ori_img.c_str());
 
-					// }
+						char yolo_delete_txt[prev_txt_name.size()+1];
+						strcpy(yolo_delete_txt,prev_txt_name.c_str());
 
-					// status=remove(fname);
-					// if(status==0)
-					// {
-					// 	cout<<"file "<<fname<<" deleted successfully..!!\n";
-					// }
-					// else
-					// {
-					// 	cout<<"Unable to delete file "<<fname<<"\n";
-					// 	// perror("Error Message ");
-					// }
-					// getchar();
+						int status_contour=remove(contour_delete_file);
+						int status_yolo=remove(yolo_delete_file);
+						int status_yolo_txt=remove(yolo_delete_txt);
+						// cout<<"game: "<<game<<endl;
+						// getchar();
+						if(status_contour==0){
+							cout<<"The contour file "<<prev_file_name_contour<<" is deleted"<<endl;
+						}
+
+						if(status_yolo==0){
+							cout<<"The yolo file "<<prev_file_name_ori_img<<" is deleted"<<endl;
+						}
+
+						if(status_yolo_txt==0){
+							cout<<"The yolo txt file "<<prev_txt_name<<" is deleted"<<endl;
+						}
+
+						j=j-2;
+					}
+					
 				}else if(key==27){//when press esc
 					cout<<"you press esc"<<endl;
 					file_contour.close();
-					file_name.close();
 					save_contour.close();
 					return 1;
 					// getchar();
 				}else if(key==121){//when press y:yolo
 					ofstream save_yolo;//yolo
-					string name2=glob_sub_result_ori_img.gl_pathv[j];
-
-					delimiter=0;
-					while(delimiter!=-1){
-				  		delimiter = name2.find('/');
-				  		name2 = name2.substr(delimiter+1);
-				  	}
-
-					string path2="ROI_success/yolo/"+name2;
-					string y_path="ROI_success/yolo/";
-				  	delimiter = name2.find('.');
-				  	name2 = name2.substr(0,delimiter);
-				  	y_path=y_path+name2;
-				  	y_path=y_path+".txt";
 				  	save_yolo.open(y_path);
 
-					imwrite( path2, image_ori_img[j]);
-					save_yolo << yolo_data;
-					save_yolo << endl;
+					imwrite( path2, image_ori_img);
+					save_yolo<<yolo_data;
+					save_yolo<<endl;
 					save_yolo.close();
-				}else if(key==99){//when press y:yolo
-					string path1="ROI_success/contour/"+name;
-					imwrite( path1, image_contour[j]);
+				}else if(key==99){//when press c:Contour
 
+					imwrite( path1, image_contour);
 					save_contour << contour_data;
 					save_contour << endl;
 				}else{
 					cout<<"you press wrong button"<<endl;
 					cout<<"try again"<<endl;
+					is_press_wrong_or_back_btn=true;
+					lockopener=1;
 					j--;
 				}
-
+				prev_file_name_contour=path1;
+				prev_file_name_ori_img=path2;
+				prev_txt_name=y_path;
 				cout<<"key: "<<key<<endl;
 
 			}
 			file_contour.close();
-			file_name.close();
-			
-		}
+		// }
 		save_contour.close();
-		// save_yolo.close();
-			
+		return i+1;
 	}
 }
 
@@ -2461,6 +2391,7 @@ int run_kuwahara(int argc,char *argv[]){
 		myfile.close();
 
 		// exit(1);//point to exit
+		
 		return i;
 
 
