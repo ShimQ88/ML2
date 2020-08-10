@@ -13,11 +13,11 @@ total=`ls $path_of_file -l | wc -l`
 
 echo $total
 
-total=`expr $total - 10`
+total=`expr $total - 5`
 #loop work until index number over total number of item in directory
 while [ $value -le $total ]
 do
 	
 	./main -detect $path_of_file $value
-	value=`cat index.txt`
+	value=`cat ROI_images/index.txt`
 done

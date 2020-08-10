@@ -1,6 +1,9 @@
 #include "kuwahara.h"
 #include "contour.h"
 
+#define the_number_of_file_in_folder 10
+
+
 const int max_value_H = 360/2;
 const int max_value = 255;
 const String window_capture_name = "Video Capture";
@@ -48,64 +51,6 @@ Mat src, src_gray, dst;
 const char* window_name = "Threshold Demo";
 const char* trackbar_type = "Type: \n 0: Binary \n 1: Binary Inverted \n 2: Truncate \n 3: To Zero \n 4: To Zero Inverted";
 const char* trackbar_value = "Value";
-
-// void test(string *da){
-// 	*da="hello";
-// }
-
-void Splite_Data_Yolo_and_Contour(ifstream &file_contour, string* yolo_data, string* contour_data, string* img_name ){
-		
-	string contour_line;
-	getline(file_contour, contour_line);
-	cout<<"contour_line: "<<contour_line<<endl;
-
-	
-	int delimiter = contour_line.find(';');
-	string class_name = contour_line.substr(0,delimiter);//extract out class
-	
-	*yolo_data=class_name;
-	*contour_data=class_name;
-	
-	*yolo_data=*yolo_data+',';
-	*contour_data=*contour_data+',';
-
-	contour_line=contour_line.substr(delimiter+1);
-
-	delimiter = contour_line.find(';');
-	
-	*img_name=contour_line.substr(0,delimiter);
-
-	contour_line=contour_line.substr(delimiter+1);
-
-	delimiter = contour_line.find(';');
-	
-	*yolo_data=*yolo_data+*img_name;
-
-	*yolo_data=*yolo_data+',';
-
-	string yo_info=contour_line.substr(0,delimiter);//extract out yolo information
-	contour_line=contour_line.substr(delimiter+1);
-	string contour_info=contour_line;
-	
-	*yolo_data=*yolo_data+yo_info;
-	*contour_data=*contour_data+contour_info;
-}
-
-string Ori_Img_Name_To_Contour_Name(string img_name){
-	int delimiter = img_name.find('.');
-	string output_string;
-	output_string = img_name.substr(0,delimiter);
-	output_string = output_string+"_contour.jpg";
- 	return output_string;
-}
-
-string Jpg_To_Txt_Directory(string img_name){
-	int delimiter = img_name.find('.');
-	string output_string="ROI_success/yolo/";
-	img_name = img_name.substr(0,delimiter);
-	output_string = output_string+img_name+".txt";
- 	return output_string;
-}
 
 
 static void Threshold_Demo( int, void* )
@@ -1766,312 +1711,43 @@ void Filter_Gray(Mat image1, Mat image2, int window_size){
 	}
 
 }
-int run_filtering(int argc,char *argv[]){
-	if((argc==3)||(argc==4)){
-		int index_from_file;
-		if(argc==3){
-			index_from_file=0;
-		}else if(argc==4){
-			index_from_file=stoi(argv[3]);
-		}
-		int size=strlen(argv[2]);
-		cout<<"size:"<<size<<endl;
-		// char path[size+10];
-
-		char path_ori_img[size+8];
-		char path_contour[size+8];
-
-		// strcpy(path,argv[2]);
-		strcpy(path_ori_img,argv[2]);
-		strcat(path_ori_img,"/Image/*");
-
-		strcpy(path_contour,argv[2]);
-		strcat(path_contour,"/Contour/*");
-		
-		// strcat(path,"/*");
-		
-
-
-
-		
-
-
-
-		glob_t glob_result, glob_result_ori_img;
-		glob(path_contour,GLOB_TILDE,NULL,&glob_result);
-		glob(path_ori_img,GLOB_TILDE,NULL,&glob_result_ori_img);
-		
-
-		ofstream save_contour;
-		// ofstream save_yolo;
-		unsigned int i=index_from_file;
-		// for(unsigned int i=index_from_file; i<glob_result.gl_pathc; i++){
-			
-			cout << glob_result.gl_pathv[i] << endl;
-			cout << glob_result_ori_img.gl_pathv[i] << endl;
-			int sub_size_contour=strlen(glob_result.gl_pathv[i]);
-			int sub_size_ori_img=strlen(glob_result_ori_img.gl_pathv[i]);
-			cout<<"sub_size_ori_img: "<<sub_size_ori_img<<endl;
-			cout<<"sub_size_contour: "<<sub_size_contour<<endl;
-	
-			char sub_path_contour[sub_size_contour+2];
-			char sub_path_ori_img[sub_size_ori_img+2];
-
-			strcpy(sub_path_contour, glob_result.gl_pathv[i]);
-			strcat(sub_path_contour,"/*");
-
-			strcpy(sub_path_ori_img, glob_result_ori_img.gl_pathv[i]);
-			strcat(sub_path_ori_img,"/*");
-			
-			glob_t glob_sub_result;
-			glob_t glob_sub_result_ori_img;
-			glob(sub_path_contour,GLOB_TILDE,NULL,&glob_sub_result);
-
-			// cout<<"sub_path_contour: "<<sub_path_contour<<endl;
-			// cout<<"sub_path_ori_img: "<<sub_path_ori_img<<endl;
-			glob(sub_path_ori_img,GLOB_TILDE,NULL,&glob_sub_result_ori_img);
-			cout<<"glob_sub_result.gl_pathc:"<<glob_sub_result.gl_pathc<<endl;
-			// Mat image_contour[glob_sub_result.gl_pathc-2];//except to contour and name files
-			Mat image_contour;
-
-			// Mat image_ori_img[glob_sub_result.gl_pathc-2];//except to contour and name files
-			Mat image_ori_img;//except to contour and name files
-
-			string p_contour;
-			string path_name;
-			ifstream file_contour;
-			
-			cout<<"haha"<<endl;
-
-			// cout<<"glob_result.gl_pathv[i]: "<<glob_result.gl_pathv[i]<<endl;
-			// cout<<"glob_sub_result+1: "<<glob_result.gl_pathv[i+1]<<endl;
-			// cout<<"hoho"<<endl;
-			bool is_press_wrong_or_back_btn=false;
-			int lockopener=0;
-			string prev_file_name_ori_img;
-			string prev_file_name_contour;
-			string prev_txt_name;
-			Mat prev_file_img_contour;
-			Mat prev_file_img_ori;
-			string yolo_data, contour_data, name_ori_img;
-			int counter=0;
-			for(unsigned int j=0; j<glob_sub_result.gl_pathc-2; j++){
-				if(j==0&&is_press_wrong_or_back_btn==false){
-					cout<<"glob_sub_result: "<<glob_sub_result.gl_pathv[j]<<endl;
-					cout<<"glob_sub_result+1: "<<glob_sub_result.gl_pathv[j+1]<<endl;
-					find_contour_and_name_file(glob_sub_result, &p_contour, &path_name);
-					cout<<"p_contour: "<<p_contour<<endl;
-					file_contour.open(p_contour);
-					
-					if(file_contour.is_open()==true){
-						cout<<"success to load contour file"<<endl;
-					}else{
-						cout<<"fail to load contour file"<<endl;
-					}
-				}
-
-				if(j==0&&is_press_wrong_or_back_btn==false){
-					save_contour.open("ROI_success/contour/final_contour.txt",std::ios_base::app);
-				}
-
-				
-				if(is_press_wrong_or_back_btn==false){
-					Splite_Data_Yolo_and_Contour(file_contour, &yolo_data, &contour_data,&name_ori_img);			
-				}
-				
-				string name_contour=Ori_Img_Name_To_Contour_Name(name_ori_img);
-				// cout<<"path_contour: "<<path_contour<<endl;
-				// cout<<"path_name: "<<path_name<<endl;
-
-				// cout << glob_sub_result.gl_pathv[j] << endl;
-
-				image_contour=imread(glob_sub_result.gl_pathv[j],1);
-				image_ori_img=imread(glob_sub_result_ori_img.gl_pathv[j],1);
-
-
-
-				// glob_sub_result.gl_pathv[j]
-				// if(is_press_wrong_or_back_btn==true){
-					// imshow("image_contour", prev_file_img_contour);
-					// imshow("image_ori", prev_file_img_ori);
-				// }else{
-				imshow("image_contour", image_contour);
-				imshow("image_ori", image_ori_img);	
-				// }
-				
-				int key=waitKey(0);
-				// cout<<"the key: "<<key<<endl;
-				// getchar();  
-				string path1="ROI_success/contour/"+name_contour;
-				string path2="ROI_success/yolo/"+name_ori_img;
-
-				string y_path=Jpg_To_Txt_Directory(name_ori_img);
-				lockopener++;
-				if(lockopener>=2){
-					is_press_wrong_or_back_btn=false;	
-				}
-				if(key==10){//when press enter
-					ofstream save_yolo;//yolo
-				  	
-				  	save_yolo.open(y_path);
-
-				  	//writing process
-					imwrite( path1, image_contour);
-					imwrite( path2, image_ori_img);
-
-					save_contour << contour_data;
-					save_contour << endl;
-					save_yolo << yolo_data;
-					save_yolo << endl;
-
-					save_yolo.close();
-				}else if(key==255){//when press delete
-					cout<<"you press delete"<<endl;
-					// getchar();
-					
-				}else if(key==8){//when press backspace
-					cout<<"you press backspace"<<endl;
-					if(j==0){
-
-					}else{
-						is_press_wrong_or_back_btn=true;
-						lockopener=0;
-						char contour_delete_file[prev_file_name_contour.size()+1];
-						strcpy(contour_delete_file,prev_file_name_contour.c_str());
-
-						char yolo_delete_file[prev_file_name_ori_img.size()+1];
-						strcpy(yolo_delete_file,prev_file_name_ori_img.c_str());
-
-						char yolo_delete_txt[prev_txt_name.size()+1];
-						strcpy(yolo_delete_txt,prev_txt_name.c_str());
-
-						int status_contour=remove(contour_delete_file);
-						int status_yolo=remove(yolo_delete_file);
-						int status_yolo_txt=remove(yolo_delete_txt);
-						// cout<<"game: "<<game<<endl;
-						// getchar();
-						if(status_contour==0){
-							cout<<"The contour file "<<prev_file_name_contour<<" is deleted"<<endl;
-						}
-
-						if(status_yolo==0){
-							cout<<"The yolo file "<<prev_file_name_ori_img<<" is deleted"<<endl;
-						}
-
-						if(status_yolo_txt==0){
-							cout<<"The yolo txt file "<<prev_txt_name<<" is deleted"<<endl;
-						}
-
-						j=j-2;
-					}
-					
-				}else if(key==27){//when press esc
-					cout<<"you press esc"<<endl;
-					file_contour.close();
-					save_contour.close();
-					return 1;
-					// getchar();
-				}else if(key==121){//when press y:yolo
-					ofstream save_yolo;//yolo
-				  	save_yolo.open(y_path);
-
-					imwrite( path2, image_ori_img);
-					save_yolo<<yolo_data;
-					save_yolo<<endl;
-					save_yolo.close();
-				}else if(key==99){//when press c:Contour
-
-					imwrite( path1, image_contour);
-					save_contour << contour_data;
-					save_contour << endl;
-				}else{
-					cout<<"you press wrong button"<<endl;
-					cout<<"try again"<<endl;
-					is_press_wrong_or_back_btn=true;
-					lockopener=1;
-					j--;
-				}
-				prev_file_name_contour=path1;
-				prev_file_name_ori_img=path2;
-				prev_txt_name=y_path;
-				cout<<"key: "<<key<<endl;
-
-			}
-			file_contour.close();
-		// }
-		save_contour.close();
-		return i+1;
-	}
-}
 
 int run_kuwahara(int argc,char *argv[]){
 	/*The First image*/
 	double fps=0.0;	
 	if((argc==3)||(argc==4)){
 		int index_from_file;
-		if(argc==3){
+		if(argc==3){//The case of there are no index information
 			index_from_file=0;
-		}else if(argc==4){
+		}else if(argc==4){//including index information
 			index_from_file=stoi(argv[3]);
+		}else{
+			return -1; //error code
 		}
 
 		int size=strlen(argv[2]);
-		cout<<"size:"<<size<<endl;
+		// cout<<"size:"<<size<<endl;
 		char path[size+2];
 
 		strcpy(path,argv[2]);
 		strcat(path,"/*");
 		cout<<"path:"<<path<<endl;
 		
-
-		// string path = "argv[2]";
-		// cout<<"path:"<<path<<endl;
 		glob_t glob_result;
 		glob(path,GLOB_TILDE,NULL,&glob_result);
-		// glob(argv[2],GLOB_TILDE,NULL,&glob_result);
-		
-
-		ofstream myfile ("ROI_images/contour.txt");
-		if (myfile.is_open()){
-		    
-		}else{
-			cout << "Unable to open file";
-			exit(0);
-		}
 
 		int key=0;
 		int folder_numb=0;
 		int file_numb=0;
 		ofstream contour_file;
-		ofstream name_file;
+		
 		// unsigned int i;
 		bool terminator=false;
 		unsigned int i;
 		for(i=index_from_file; i<glob_result.gl_pathc-1; ++i){
-			cout<<"glob_result.gl_pathc: "<<glob_result.gl_pathc<<endl;
-		// for(unsigned int i=0; i<1; ++i){
-		  	// cout << glob_result.gl_pathv[i] << endl;
-		  	// cout << glob_result.gl_pathv[i+1] << endl;
-		  	// cout << glob_result.gl_pathv[i+2] << endl;
-
-		  	// cout << glob_result.gl_pathv[i+3] << endl;
-		  	// cout << glob_result.gl_pathv[i+4] << endl;
-
-		  	// bool is_the_end_numb_in_a_row=true;
-		  	// int k=i;
+			// cout<<"glob_result.gl_pathc: "<<glob_result.gl_pathc<<endl;
 		  	int total_numb=check_total_numb(i,glob_result);
 
-		  	// while(is_the_end_numb_in_a_row==true){
-		  	// 	cout<<"K: "<<k<<endl;
-		  	// 	if(k==glob_result.gl_pathc-1||(k==glob_result.gl_pathc-2)){
-		  	// 		total_numb++;
-		  	// 		break;
-		  	// 	}
-		  	// 	is_the_end_numb_in_a_row=check_numb_in_a_row(glob_result.gl_pathv[k], glob_result.gl_pathv[k+1]);
-		  	// 	k++;
-		  	// 	total_numb++;
-		  	// 	if(total_numb>20){break;}
-		  	// }
 		  	if(total_numb>20){
 		  		cout<<"The last collection of pictures"<<endl;
 		  		continue;
@@ -2087,26 +1763,15 @@ int run_kuwahara(int argc,char *argv[]){
 		  		continue;
 		  	}
 
-
-
-
 		  	// total_numb=5;
 		  	/*The First image process*/
 		  	Mat samp_output[total_numb];
 		  	if(total_numb>4){
 		  		total_numb=4;
 		  	}
-		  	// Mat image[total_numb];
-		  	// Kuhawara ku[total_numb];
-		  	// for(int j=0;j<total_numb;j++){
-		  	// 	image[j]=imread(glob_result.gl_pathv[i+j],1);
-		  	// 	ku[j].main(image[j]);
-		  	// }
+
 		  	Kuhawara_ROI2 ku_ROI;
 		  	int loop_break=0;
-
-		  	
-
 
 		  	while(true){
 		  		cout<<"index: "<<loop_break<<endl;
@@ -2126,22 +1791,6 @@ int run_kuwahara(int argc,char *argv[]){
 			  	if(ku_ROI.get_initalization_result()==false){
 
 			  	}else{
-			  		// for(int j=0;j<total_numb-1;j++){
-				  	// 	// imshow(to_string(j)+"minus", ROI_t[j]);
-				  	// 	int val=ku_ROI.get_pixel(j);
-				  	// 	cout<<"brighest pixel "<<j<<": "<<val<<endl;
-				  	// 	// imshow(to_string(j), ROI_real[j]);
-
-			  		// imshow("1",ku_ROI.get_temp_output_img());
-			  		// waitKey(0);
-				  	// }
-				  	// imshow("0", ku_ROI.get_merged_samp_output2());
-			  		// imshow("merged", ku_ROI.get_merged_samp_output());
-			  		// imshow("drawing", ku_ROI.get_target_ROI_img());
-			  		// imshow("get_temp_output_img", ku_ROI.get_temp_output_img());
-			  		// // imshow("4", ROI_real[loop_break]);
-			  		// key=waitKey(0);
-			  		int the_number_of_file_in_folder=10;
 			  		if(file_numb>=the_number_of_file_in_folder){
 			  			folder_numb++;
 			  		}
@@ -2154,23 +1803,17 @@ int run_kuwahara(int argc,char *argv[]){
 				  	string saving_directory3="ROI_images/Image/"+str_folder_numb+"/";
 
 				  	if(folder_numb==0&&file_numb==0){
-				  		bool is_folder_exsist1=false;
-				  		bool is_folder_exsist2=false;
-				  		bool is_folder_exsist3=false;
-				  		while(is_folder_exsist1==false){
-				  			
-				  			is_folder_exsist1=creating_folder(saving_directory1);
-			  				is_folder_exsist2=creating_folder(saving_directory2);
-			  				is_folder_exsist3=creating_folder(saving_directory3);
-
-			  				if(is_folder_exsist1==false){
+				  		bool is_folder_exsist=false;
+				  		
+				  		while(is_folder_exsist==false){
+				  			is_folder_exsist=creating_directories(saving_directory1,saving_directory2,saving_directory3);
+			  				if(is_folder_exsist==false){
 			  					folder_numb++;
 			  					str_folder_numb=to_string(folder_numb);
 			  					saving_directory1="ROI_images/ROI/"+str_folder_numb+"/";
 				  				saving_directory2="ROI_images/Contour/"+str_folder_numb+"/";
 				  				saving_directory3="ROI_images/Image/"+str_folder_numb+"/";
 			  				}
-			  				
 				  		}
 			  			
 
@@ -2180,54 +1823,20 @@ int run_kuwahara(int argc,char *argv[]){
 			  			if (contour_file.is_open()){
 						    
 						}else{
-							cout << "Unable to open file";
+							cout << "Unable to open contour_file";
 							exit(0);
 						}
-
 						string name_dir="ROI_images/Contour/"+str_folder_numb+"/name_"+str_folder_numb+".txt";
-
-						name_file.open(name_dir);			  			
-			  			if (name_file.is_open()){
-						    
-						}else{
-							cout << "Unable to open file";
-							exit(0);
-						}
-
 			  		}
 
 			  		if(file_numb>=the_number_of_file_in_folder){
 			  			// creating_folder(saving_directory1);
 			  			// creating_folder(saving_directory2);
-			  			file_numb=0;
+			  			// file_numb=0;
 			  			contour_file.close();
-			  			name_file.close();
 
 			  			terminator=true;
 			  			break;
-
-			  			
-			  			string contour_dir="ROI_images/Contour/"+str_folder_numb+"/contour_"+str_folder_numb+".txt";
-			  			contour_file.open(contour_dir);
-			  			if (contour_file.is_open()){
-						    
-						}else{
-
-							cout << "Unable to open file";
-							exit(0);
-						}
-
-						string name_dir="ROI_images/Contour/"+str_folder_numb+"/name_"+str_folder_numb+".txt";
-						name_file.open(name_dir);
-			  			if (name_file.is_open()){
-						    
-						}else{
-							cout << "Unable to open file";
-							exit(0);
-						}
-
-			  			cout<<"file close"<<endl;
-			  			
 			  		}
 			  		cout<<"p4"<<endl;
 				  	string file_type1="_ROI.jpg";
@@ -2241,8 +1850,6 @@ int run_kuwahara(int argc,char *argv[]){
 			  		write_img(ku_ROI.get_ROI_and_drawing() ,saving_directory2,file_name,file_type2);
 			  		string saving_name=write_img(ku_ROI.get_target_original_img() ,saving_directory3,file_name,file_type3);
 			  		
-			  		// saving_name=saving_name+'\n';
-
 			  		// imshow("get_target_ROI_img", ku_ROI.get_target_ROI_img());
 			  		// imshow("merged", ku_ROI.get_merged_samp_output());
 			  		// imshow("drawing", ku_ROI.get_main_ROI_img());
@@ -2262,37 +1869,9 @@ int run_kuwahara(int argc,char *argv[]){
 			  			ku_ROI.get_yolo_height(),
 			  			ku_ROI.get_contour_txt()
 			  		);
-					
-			  		
-			  		
-			  		// cout<<"class_name: "<<class_name<<endl;
-			  		// getchar();
-			  		// string* CE_test=ku_ROI.get_CEs();
-
-
-
-			  		VertexList vl;
-			  		
-			  		// CE_test[0]="1"
-			  		// cout<<"CEs"<<endl;
-			  		// for(int z=1;z<n_CE;z++){
-			  		// 	cout<<CE_test[z]<<endl;
-			  		// }
-			  		// cout<<"CEs end"<<endl;
-			  		// getchar();
-
-
-			  		contour_file << final_string;
-
-			  		name_file << saving_name;
-
-			  		// myfile << CE_val;
-			  		
+			  		contour_file << final_string;			  		
 			  	}
-			  	
-			  	
 			  	loop_break++;
-
 			  	if(loop_break==total_numb){
 			  		cout<<"loop break"<<endl;
 			  		break;
@@ -2302,99 +1881,8 @@ int run_kuwahara(int argc,char *argv[]){
 		  	if(terminator==true){
 		  		break;
 		  	}
-		  	
-		  	// continue;
-		  	// string saving_directory="ROI_images/";
-		  	// string file_name = glob_result.gl_pathv[i];
-		  	
-		  	// write_img(ku_ROI.get_drawing() ,saving_directory,file_name);
-
-
-			// string saving_directory="ROI_images/";
-			// string s = glob_result.gl_pathv[i];
-			// string delimiter = ".";
-			// int delimiter = s.find('.');
-			// cout<<"test: "<<test<<endl;
-			// cout<<"delimiter: "<<delimiter<<endl;
-			// string token2 = s.substr(s.find('/')+1);
-			// string token3 = token2.substr(0,token2.find('.'));
-
-
-			// cout<<"token3: "<<token3<<endl;
-			// cout<<"s: "<<s<<endl;
-
-
-			// string prev_name=glob_result.gl_pathv[i];
-			// string str_prev_name=prev_name.substr(prev_name.size()-8,4);
-
-			// string path_ROI=saving_directory+str_prev_name+"_ROI.jpg";
-			// string path_original=saving_directory+str_prev_name+"_original.jpg";
-
-
-
-			
-
-			// string str_cur_name=cur_name.substr(cur_name.size()-8,4);
-	// int prev_img_numb=stoi(str_prev_name);
-	// int cur_img_numb=stoi(str_cur_name);
-	// int diff_numb=cur_img_numb-prev_img_numb;
-			// cout<<"path_ROI: "<<path_ROI<<endl; 
-			// imwrite( path_ROI, ku_ROI.get_drawing() );
-			// imwrite( path_original, sample2.get_original_img() );
-			// key=waitKey(0);
-			
-
-			
-
-
-
-
-	// 		continue;
-	// 		// cout<<"4"<<endl;
-	// 		// vector<float>CE;
-	// 		// EllipticFourierDescriptors(contours[largestcontour],CE);
-
-
-
-
-
-
-
-
-			
-		    
-	// 		// thresholding_image(gray_image2, 120);
-			
-	// 		// draw_rect_box(image2, p1, p2, 200);
-			
-	// 		cout<<"count_numb:"<<count_numb<<endl;
-			
-
-	// 		// imshow("output", output);
-	// 		imshow("ROI", ROI);
-	// 		imshow("gray_image1", gray_image2);
-	// 		cout<<"1"<<endl;
-	// 		imshow("output1", output1);
-	// 		cout<<"2"<<endl;
-	// 		imshow("blob_window", blob_window);
-	// 		cout<<"3"<<endl;
-	// 		key=waitKey(0);
-	// 		// waitKey(1);
-	// 		// cout<<"1"<<endl;
-	// 		if(key==113 || key==27) exit(1);//either esc or 'q'
-	// 		cout<<"loop Done"<<endl;
-
-			
-			// delete p1;
-			// delete p2;
 		}
-		myfile.close();
-
-		// exit(1);//point to exit
-		
 		return i;
-
-
 	}else{//dynamic mode with camera
 		/*Information*/
 		cout<<"dynamic mode"<<endl;

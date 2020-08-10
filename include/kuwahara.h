@@ -105,43 +105,6 @@ int determine_frame_size(Mat input, Point obj_center, int frame_size, int append
 }
 
 
-bool find_contour_and_name_file(glob_t glob_sub_result, string *path_contour, string *path_name){
-	bool is_find_contour_path=false;
-	bool is_find_name_path=false;
-
-	for(unsigned int z=0; z<glob_sub_result.gl_pathc; z++){
-		int delimiter=0;
-		string file_name=glob_sub_result.gl_pathv[z];
-		/*process extract the file name*/
-		while(delimiter!=-1){
-	  		delimiter = file_name.find('/');
-	  		file_name = file_name.substr(delimiter+1);
-	  	}
-	  	/*********************************/
-		delimiter = file_name.find('.');
-		string type= file_name.substr(delimiter+1);
-		if(type.compare("txt")==0){
-			delimiter = file_name.find('_');
-			string test=file_name.substr(0,delimiter);
-			if(test.compare("contour")==0){
-				*path_contour=glob_sub_result.gl_pathv[z];
-				is_find_contour_path=true;
-			
-			}else if(test.compare("name")==0){
-				*path_name=glob_sub_result.gl_pathv[z];
-				is_find_name_path=true;
-			}
-		}
-	}
-
-	if(is_find_contour_path==true&&is_find_name_path==true){
-		return true;//find both of path
-	}else{
-		return false;//couldn't find both of path
-	}
-}
-
-
 bool creating_folder(string folder_name){
 	int check;
 	int size = folder_name.length(); 
@@ -160,6 +123,40 @@ bool creating_folder(string folder_name){
         return false;
     }
 }
+
+bool creating_directories(string folder_name_roi, string folder_name_contour, string folder_name_image){
+	int i=0;
+	while(1){
+		int size;
+		string folder_name;
+		if(i==0){
+			size=folder_name_roi.length();
+			folder_name=folder_name_roi;
+		}else if(i==1){
+			size=folder_name_contour.length();
+			folder_name=folder_name_contour;
+		}else if(i==2){
+			size=folder_name_image.length();
+			folder_name=folder_name_image;
+		}else{
+			cout<<"index error"<<endl;
+			return false;
+		}
+		char dirname[size+1];
+    	strcpy(dirname, folder_name.c_str());
+		int check = mkdir(dirname,0777);
+		if(!check){ 
+        	printf("The folder %s Directory created\n", dirname);
+    	}else{
+    		printf("Fail to create %s Directory or the folder %s exist\n ", dirname, dirname);
+        	return false;
+        }
+		if(i==2){break;}//loop breaker
+		i++;
+	}
+  	return true;//success making three files
+}
+
 
 
 string write_img(Mat saving_img, string folder_name, string file_name, string file_type){
@@ -338,7 +335,6 @@ class Kuhawara_ROI2
 
 private:
 	bool is_initialize_success;
-	
 	Mat *ROI;
 	Mat *samp_output;
 	Mat merged_samp_output;
@@ -556,15 +552,9 @@ public:
 				}
 		    	
 			}
-			
-			
-
-
 			is_initialize_success=true;
 			cout<<"success initializing"<<endl;
 		}
-		
-
 	}
 	
 	bool get_initalization_result(){return is_initialize_success;}
@@ -678,32 +668,5 @@ public:
 	string* get_CEs(){return p_CE;}
 	
 };
-
-struct CEs{
-	CEs(string* CE_val):CEs_(CE_val){} 
-	string* CEs_;
-};
-
-struct Yolo_info{
-	Yolo_info(double x, double y, double w, double h ):
-		x_(x),y_(y),w_(w),h_(h)
-	{} 
-	double x_;
-	double y_;
-	double w_;
-	double h_;
-};
-
-struct Vertex
-{
-    Vertex( const CEs& val_CEs, const Yolo_info& val_Yolo ):
-        CEs_val_( val_CEs ), yolo_info_( val_Yolo )
-    {}
-    CEs CEs_val_;
-    Yolo_info yolo_info_;
-};
-
-typedef std::vector< Vertex > VertexList;
-
 
 #endif

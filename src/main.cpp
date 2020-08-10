@@ -7,7 +7,7 @@
 // System Headers
 #include <iostream>
 #include <fstream>
-#include <cmath>
+#include <cmath>  
 
 // Opencv Headers
 #include "opencv2/core/core.hpp"
@@ -18,7 +18,10 @@ using namespace std;
 using namespace cv;
 using namespace cv::ml;
 
+extern int Semi_Auto_Filtering(int argc,char *argv[]);
+extern void Semi_Auto_Filtering_info();
 extern int run_kuwahara(int argc,char *argv[]);
+// extern int run_filtering(int argc,char *argv[]);
 extern int run_filtering(int argc,char *argv[]);
 extern void run_contour(char* argv);
 extern bool load_and_save_ml( const string& data_filename,
@@ -36,6 +39,7 @@ void info(){
     cout<<"0 = neural_network"<<endl;
     cout<<"1 = ada_boost"<<endl;
     cout<<"2 = random_forest"<<endl;
+    // cout<<"-detect"<<endl;
 }
 
 int main(int argc, char *argv[]){
@@ -108,12 +112,20 @@ int main(int argc, char *argv[]){
             // return terminate_value;
 
         }else if(strcmp(argv[i],"-filtering") == 0){
-            int terminate_value=run_filtering(argc,argv);
+            int terminate_value=Semi_Auto_Filtering(argc,argv);
             cout<<"terminate_value: "<<terminate_value<<endl;
+            
+            if(terminate_value==10000000){
+                cout<<"The error code -1, the command is not correct"<<endl;
+            }else if(terminate_value==20000000){
+                cout<<"The error code -2,  user press the ESC to stop programming"<<endl;
+            }else{
+            }
             ofstream index_save;
             index_save.open ("ROI_success/index.txt");
             index_save << to_string(terminate_value);
-            index_save.close();
+            index_save.close();    
+            
             exit(1);
         }
 
